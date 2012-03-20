@@ -1,0 +1,13 @@
+form#createurl.form-inline(action='/create', method='post')
+  fieldset
+    input(value=csrf, name='_csrf', type='hidden')
+    .control-group
+      label.control-label(for='url') URL to shorten
+      .controls
+        input#url.input-xlarge(name='url', placeholder='http://', type='text')
+        input.btn.btn-primary.btn-medium(value='Create', type='submit')
+    .control-group.results
+      label.control-label(for='url',) Shortened URL
+      .controls
+        .results.input-xlarge.uneditable-input(style='cursor: pointer')
+          a(href='', target='_blank')

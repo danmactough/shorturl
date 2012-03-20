@@ -1,0 +1,11 @@
+form#signin.form-vertical(action='/signin', method='post')
+  fieldset
+    .control-group
+      label.control-label(for='username') Username
+      .controls
+        input#username.input-xlarge(name='username', type='text')
+      label.control-label(for='password') Password
+      .controls
+        input#password.input-xlarge(name='password', type='password')
+  input(value=csrf, name='_csrf', type='hidden')
+  input.btn.btn-primary(value='Sign In', type='submit')

@@ -12,6 +12,7 @@ var Schema = mongoose.Schema
   , Counter
   , Url
   , Hits
+  , LoginToken
   ;
 
 var CounterSchema = new Schema({
@@ -33,14 +34,21 @@ function shorturlGenerator (options){
     if (!this.isNew) next();
     else {
       var self = this;
-      Counter.collection.findAndModify({ c: { $ne: -1 } }, [], { $inc: { c: 1 } }, { "new": true, upsert: true }, function (err, doc){
-        if (err) next(err);
-        else {
-          self.ct = doc.c;
-          self.shorturl = NewBase60.numtosxg(self.ct);
-          next();
-        }
-      });
+      if (self.shorturl && self.shorturl.length) {
+        if (!self.ct) // We have the shorturl, but not the ct -- must be importing!
+          self.ct = NewBase60.sxgtonum(self.shorturl);
+        else if (self.ct != NewBase60.sxgtonum(self.shorturl))
+          next(new Error('Shorturl does not appear to be valid'));
+      } else {
+        Counter.collection.findAndModify({ c: { $ne: -1 } }, [], { $inc: { c: 1 } }, { "new": true, upsert: true }, function (err, doc){
+          if (err) next(err);
+          else {
+            self.ct = doc.c;
+            self.shorturl = NewBase60.numtosxg(self.ct);
+            next();
+          }
+        });
+      }
     }
   });
   };        
@@ -71,6 +79,10 @@ UrlSchema.methods.toJSON = function (host){
   return obj;
 };
 
+UrlSchema.statics.findByShorturl = function findByShorturl (url, callback){
+  return this.findOne({ shorturl: url }, { ct: 0 }, callback);
+};
+
 UrlSchema.statics.findByUrl = function findByUrl (url, callback){
   return this.findOne({ longurl: RegExp('^'+url+'$', 'i')}, { ct: 0 }, callback);
 };
@@ -95,13 +107,43 @@ HitSchema.virtual('created')
     return this._id.generationTime;
   });
 
-UrlSchema.pre('save', function (next){
+HitSchema.pre('save', function (next){
   if (!'timestamp' in this) this.timestamp = new Date();
   next();
 });
 
-exports.Url = Url   = mongoose.model('Url',  UrlSchema);
-exports.Hits = Hits = mongoose.model('Hits', HitSchema);
+var LoginTokenSchema = new Schema ({
+  'username': String
+, 'series': String
+, 'token': String
+}, { strict: true });
+
+LoginTokenSchema.index({ username: 1 });
+LoginTokenSchema.index({ series: 1 });
+LoginTokenSchema.index({ token: 1 });
+
+LoginTokenSchema.virtual('cookieValue')
+  .get(function() {
+    return JSON.stringify({ username: this.username, token: this.token, series: this.series });
+  });
+
+LoginTokenSchema.method('randomToken', function() {
+  return Math.round((new Date().valueOf() * Math.random())) + '';
+});
+
+LoginTokenSchema.pre('save', function(next) {
+  // Automatically create the tokens
+  this.token = this.randomToken();
+
+  if (this.isNew)
+    this.series = this.randomToken();
+
+  next();
+});
+
+exports.Url        = Url        = mongoose.model('Url',        UrlSchema);
+exports.Hits       = Hits       = mongoose.model('Hits',       HitSchema);
+exports.LoginToken = LoginToken = mongoose.model('LoginToken', LoginTokenSchema);
 
 exports.dbUri = { test:        'mongodb://localhost/shorturl-test'
                 , development: 'mongodb://localhost/shorturl-development'

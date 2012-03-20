@@ -7,14 +7,15 @@
  */
 
 var express = require('express')
+  , mongoStore = require('connect-mongodb')
   , models = require('./models')
   , routes = require('./routes')
+  , auth = require('./scripts/newUser').auth
   , config = require('./config')
+  , user = require('./user')
   ;
 
 var red = express.createServer();
-
-red.use(express.logger());
 
 red.get('/:shorturl.:format?', function (req, res){
   models.Url.findOne({ shorturl: req.params.shorturl })
@@ -51,32 +52,88 @@ red.all('*', function (req, res){
   res.send(404);
 });
 
-var main = express.createServer();
+var main;
+exports.main = main = express.createServer();
 
 // Configuration
 
-main.configure(function(){
-  main.set('views', __dirname + '/views');
-  main.set('view engine', 'jade');
-  main.use(express.bodyParser());
-  main.use(express.methodOverride());
-  main.use(express.cookieParser());
-  main.use(express.session({ secret: config.SessionSecret }));
-  main.use(main.router);
-  main.use(express.static(__dirname + '/public'));
-});
+main.set('user', user);
 
 main.configure('development', function(){
+  main.set('db-uri', models.dbUri.development);
   main.use(express.errorHandler({ dumpExceptions: true, showStack: true }));
 });
 
 main.configure('production', function(){
+  main.set('db-uri', models.dbUri.production);
   main.use(express.errorHandler());
 });
 
+main.configure(function(){
+  main.set('views', __dirname + '/views');
+  main.set('view engine', 'jade');
+  main.set('view options', { pretty: true });
+  main.use(express.static(__dirname + '/public'));
+  main.use(express.bodyParser());
+  main.use(express.methodOverride());
+  main.use(express.cookieParser());
+  main.use(express.session({ store: mongoStore(main.set('db-uri')), secret: config.SessionSecret }));
+  main.use(express.csrf());
+  main.use(main.router);
+});
+
+main.dynamicHelpers(
+  { csrf: function(req,res){ return req.session._csrf; }
+  }
+);
+
 // Routes
 
-main.post('/getShorty', function (req, res){
+var middleware = require('./middleware');
+
+main.get('/signin', function (req, res){
+  if (req.session.active) res.redirect('/create');
+  else {
+    res.render('signin',
+      { title: 'Sign In' }
+    );
+  }
+});
+
+main.post('/signin', function (req, res){
+  if ((req.body.username === user.username) &&
+      (req.body.password && auth(req.body.password, user.hashed_password, user.salt))) {
+
+    req.session.regenerate(function (){
+      // Add the user data to the session variable for convenience
+      req.session.user = user;
+      req.session.username = user.username;
+
+      // Store the user's primary key
+      // in the session store to be retrieved,
+      var loginToken = new models.LoginToken({ username: user.username });
+      loginToken.save(function () {
+        // Remember me
+        if (req.body.rememberme) {
+          res.cookie('logintoken', loginToken.cookieValue, { expires: new Date(Date.now() + 2 * 604800000), path: '/' }); // 2 weeks
+        } else {
+          res.cookie('logintoken', loginToken.cookieValue, { expires: false });
+        }
+        res.redirect('/create');
+      });
+    });
+  } else {
+    res.redirect('back');
+  }
+});
+
+main.get('/create', middleware.authUser, function (req, res){
+  res.render('create',
+    { title: 'Create a New Short Url' }
+  );
+});
+
+main.post('/create', middleware.authUser, function (req, res){
   models.Url.findByUrl(req.body.url, function (err, doc){
     if (err) res.error(err);
     else if (doc) res.json(doc.toJSON(config.BaseUrl));
@@ -88,6 +145,10 @@ main.post('/getShorty', function (req, res){
       });
     }
   });
+});
+
+main.all('/', function (req, res){
+  res.redirect('/signin');
 });
 
 main.all('*', function (req, res){
