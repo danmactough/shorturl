@@ -35,8 +35,10 @@ function shorturlGenerator (options){
     else {
       var self = this;
       if (self.shorturl && self.shorturl.length) {
-        if (!self.ct) // We have the shorturl, but not the ct -- must be importing!
+        if (!self.ct) { // We have the shorturl, but not the ct -- must be importing!
           self.ct = NewBase60.sxgtonum(self.shorturl);
+          next();
+        }
         else if (self.ct != NewBase60.sxgtonum(self.shorturl))
           next(new Error('Shorturl does not appear to be valid'));
       } else {
@@ -89,6 +91,7 @@ UrlSchema.statics.findByUrl = function findByUrl (url, callback){
 
 UrlSchema.pre('save', function (next){
   if (this.isNew) this.created = new Date();
+  
   next();
 });
 
