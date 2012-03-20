@@ -88,7 +88,7 @@ UrlSchema.statics.findByUrl = function findByUrl (url, callback){
 };
 
 UrlSchema.pre('save', function (next){
-  this.created = new Date();
+  if (this.isNew) this.created = new Date();
   next();
 });
 

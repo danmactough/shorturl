@@ -17,35 +17,85 @@ var express = require('express')
 
 var red = express.createServer();
 
-red.get('/:shorturl.:format?', function (req, res){
+red.configure('development', function(){
+  red.set('db-uri', models.dbUri.development);
+  red.use(express.errorHandler({ dumpExceptions: true, showStack: true }));
+});
+
+red.configure('production', function(){
+  red.set('db-uri', models.dbUri.production);
+  red.use(express.errorHandler());
+});
+
+red.configure(function(){
+  red.set('views', __dirname + '/views');
+  red.set('view engine', 'jade');
+  red.set('view options', { pretty: true });
+  red.use(express.static(__dirname + '/public'));
+  red.use(express.bodyParser());
+  red.use(red.router);
+});
+
+red.param('format', function (req, res, next){
+  if (req.params.format && req.params.format.toLowerCase() === 'json')
+    req.getJSON = true;
+  else req.getJSON = false;
+  next();
+});
+
+red.param('info', function (req, res, next){
+  if (req.params.info && req.params.info === '+')
+    req.getInfo = true;
+  else req.getInfo = false;
+  next();
+});
+
+red.get('/:shorturl([^\+\.]+)', function (req, res){
   models.Url.findOne({ shorturl: req.params.shorturl })
     .run(function (err, doc){
       if (err) res.error(err);
       else if (doc) {
-        if (req.params.format && req.params.format.toLowerCase() === 'json')
-          res.json(doc.toJSON(config.BaseUrl));
-        else {
-          var timestamp = new Date()
-            , hit = new models.Hits();
-          hit.ip = req.connection['remoteAddress'];
-          hit.referer = req.headers['referer'];
-          hit.useragent = req.headers['user-agent'];
-          hit.timestamp = timestamp;
-          hit.url = doc._id;
-          //console.log(hit);
-          hit.save(function (err){
-            if (err && !/E11000 duplicate key error index/.test(err.err)) console.error(err);
-            else if (!err) {
-              doc.hits.count++;
-              doc.hits.lasttimestamp = timestamp;
-              doc.save();
-            }
-            res.redirect(doc.longurl, 301);
-          });
-        }
+        var timestamp = new Date()
+          , hit = new models.Hits();
+        hit.ip = req.connection['remoteAddress'];
+        hit.referer = req.headers['referer'];
+        hit.useragent = req.headers['user-agent'];
+        hit.timestamp = timestamp;
+        hit.url = doc._id;
+        hit.save(function (err){
+          if (err && !/E11000 duplicate key error index/.test(err.err)) console.error(err);
+          else if (!err) {
+            doc.hits.count++;
+            doc.hits.lasttimestamp = timestamp;
+            doc.save();
+          }
+          res.redirect(doc.longurl, 301);
+        });
       }
       else res.send(404);
     });
+});
+
+red.get('/:shorturl([^\+\.]+):info([\+])?.:format?', function (req, res){
+  if (!(req.getInfo || req.getJSON)) res.error(400);
+  else {
+    models.Url.findOne({ shorturl: req.params.shorturl })
+      .run(function (err, result){
+        if (err) res.error(err);
+        else if (result) {
+          var doc = result.toJSON(config.BaseUrl)
+          if (req.getJSON)
+            res.json(doc);
+          else {
+            res.render('info', {
+              title: 'Info about ' + doc.shorturl
+            , doc: doc
+            });
+          }
+        }
+        else res.send(404);
+      });
+  }
 });
 
 red.all('*', function (req, res){
@@ -156,6 +206,15 @@ main.all('*', function (req, res){
 });
 
 var app = module.exports = express.createServer();
+
+app.configure('development', function(){
+  app.use(express.errorHandler({ dumpExceptions: true, showStack: true }));
+});
+
+app.configure('production', function(){
+  app.use(express.errorHandler());
+});
+
 app.use(express.vhost(config.vhost_redirector, red));
 app.use(express.vhost(config.vhost_main, main));
 
