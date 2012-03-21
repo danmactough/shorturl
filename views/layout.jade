@@ -19,3 +19,8 @@ html
           .span6!= body
     script(type='text/javascript', src='/js/bootstrap.min.js')
     script(type='text/javascript', src='/js/shorturl.js')
+    -if (typeof url != 'undefined' && url)
+      script(type='text/javascript')
+        (function(){
+        $('form#createurl').submit();
+        })();

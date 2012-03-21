@@ -17,6 +17,7 @@ exports.authUser = authUser = function (req, res, next){
   else if (req.cookies.logintoken) {
     authenticateFromLoginToken(req, res, next);
   } else {
+    req.session.originalUrl = req.originalUrl;
     res.redirect('/signin');
   }
 }

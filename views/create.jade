@@ -4,7 +4,7 @@ form#createurl.form-inline(action='/create', method='post')
     .control-group
       label.control-label(for='url') URL to shorten
       .controls
-        input#url.input-xlarge(name='url', placeholder='http://', type='text')
+        input#url.input-xlarge(value=url, name='url', placeholder='http://', type='text')
         input.btn.btn-primary.btn-medium(value='Create', type='submit')
 #results-modal.modal.fade
   .modal-header

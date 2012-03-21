@@ -124,6 +124,7 @@ main.configure(function(){
   main.set('view engine', 'jade');
   main.set('view options', { pretty: true });
   main.use(express.static(__dirname + '/public'));
+  main.use(express.query());
   main.use(express.bodyParser());
   main.use(express.methodOverride());
   main.use(express.cookieParser());
@@ -153,7 +154,8 @@ main.get('/signin', function (req, res){
 main.post('/signin', function (req, res){
   if ((req.body.username === user.username) &&
       (req.body.password && auth(req.body.password, user.hashed_password, user.salt))) {
-
+    var redirect_url = req.session.originalUrl;
+    console.log(redirect_url);
     req.session.regenerate(function (){
       // Add the user data to the session variable for convenience
       req.session.user = user;
@@ -169,7 +171,7 @@ main.post('/signin', function (req, res){
         } else {
           res.cookie('logintoken', loginToken.cookieValue, { expires: false });
         }
-        res.redirect('/create');
+        res.redirect(redirect_url || '/create');
       });
     });
   } else {
@@ -179,7 +181,9 @@ main.post('/signin', function (req, res){
 
 main.get('/create', middleware.authUser, function (req, res){
   res.render('create',
-    { title: 'Create a New Short Url' }
+    { title: 'Create a New Short Url'
+    , url: req.query.url || ''
+    }
   );
 });
 
