@@ -1,5 +1,5 @@
 {
-    "name": "application-name"
+    "name": "Shorturl"
   , "version": "0.0.1"
   , "private": true
   , "dependencies": {
@@ -9,5 +9,9 @@
     , "mongoose": "2.x"
     , "NewBase60": "1.x"
     , "randpass": "0.1.x"
+  }
+, "scripts": {
+    "start": "scripts/start.sh"
+  , "stop": "scripts/stop.sh"
   }
 }
