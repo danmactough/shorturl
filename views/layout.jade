@@ -5,13 +5,17 @@ html
     title= title
     //if lt IE 9
         script(src='http://html5shim.googlecode.com/svn/trunk/html5.js')
-    link(rel='stylesheet', href='/stylesheets/bootstrap.min.css')
-    script(type='text/javascript', src='http://ajax.aspnetcdn.com/ajax/jQuery/jquery-1.6.2.min.js')
+    link(rel='stylesheet', href='/css/bootstrap.min.css')
+    link(rel='stylesheet', href='/css/style.css')
+    script(type='text/javascript', src='http://ajax.aspnetcdn.com/ajax/jQuery/jquery-1.7.min.js')
   body
     .container
-      .page-header(style='border: none;')
+      .page-header
         h1= title
       #content.content
         .row-fluid
-          .span8!= body
+          .alert.alert-error.span6(style='display: none;')
+        .row-fluid
+          .span6!= body
+    script(type='text/javascript', src='/js/bootstrap.min.js')
     script(type='text/javascript', src='/js/shorturl.js')

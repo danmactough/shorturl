@@ -1,0 +1,17 @@
+body {
+  padding: 50px;
+  font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
+}
+
+a {
+  color: #00B7FF;
+}
+
+.page-header {
+  border: none;
+}
+.modal-body .results {
+  text-align: center;
+  font-size: 16px;
+  cursor: pointer;
+}

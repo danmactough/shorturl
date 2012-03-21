@@ -29,10 +29,18 @@ $('form#createurl').submit(function(e){
 
   request($(form).attr('action'), 'POST', data, 'application/x-www-form-urlencoded',
     function(res){
+      $('.alert').empty().hide();
       $('div.results a').attr('href', res.shorturl).html(res.shorturl);
+      $('#results-modal').modal();
     },
-    function(){
-      $('.control-group.results').addClass('success');
+    function(e, jqxhr, settings, exception){
+      var err = '';
+      if (e.responseText) {
+        err = 'An error occurred trying to shorten that URL. The server said: "' + e.responseText + '"';
+      } else {
+        err = 'An unknown error occurred trying to shorten that URL.';
+      }
+      $('.alert').empty().append(err).show();
     }
     );
   return false;

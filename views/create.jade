@@ -6,8 +6,10 @@ form#createurl.form-inline(action='/create', method='post')
       .controls
         input#url.input-xlarge(name='url', placeholder='http://', type='text')
         input.btn.btn-primary.btn-medium(value='Create', type='submit')
-    .control-group.results
-      label.control-label(for='url',) Shortened URL
-      .controls
-        .results.input-xlarge.uneditable-input(style='cursor: pointer')
-          a(href='', target='_blank')
+#results-modal.modal.fade
+  .modal-header
+    a.close(data-dismiss='modal') &times;
+    h3 Shortened URL
+  .modal-body
+    .results
+      a(href='', target='_blank')
