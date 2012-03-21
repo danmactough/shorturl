@@ -40,7 +40,8 @@ function authenticateFromLoginToken (req, res, next){
 exports.authenticateFromLoginToken = authenticateFromLoginToken;
 
 function authUser (req, res, next){
-  if (req.session.user && req.session.username) next();
+  if (req.session && req.session.user && req.session.username) next();
+  else if (req.apikey) next();
   else if (req.cookies.logintoken) {
     authenticateFromLoginToken(req, res, next);
   } else {

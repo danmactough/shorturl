@@ -119,6 +119,34 @@ main.configure('production', function(){
   main.use(express.errorHandler());
 });
 
+function checkApiKey (){
+  return function (req, res, next){
+    var key = null;
+    if (req.body && req.body.apikey) key = req.body.apikey;
+    else if (req.query && req.query.apikey) key = req.query.apikey;
+    else if (req.headers['x-api-key']) key = req.headers['x-api-key'];
+    if (key === null) {
+      next();
+    } else if (key === main.set('user')['api_key']) {
+      req.apikey = key;
+      req.session = {}; // Mock the session so it doesn't generate
+      next();
+    }
+    else {
+      var e = new Error('Unauthorized (bad API key)');
+      e.status = 403;
+      next(e);
+    }
+  };
+}
+
+function debug (){
+  return function (req, res, next){
+    console.log(req.session);
+    console.log(req.body);
+    next();
+  };
+};
 main.configure(function(){
   main.set('views', __dirname + '/views');
   main.set('view engine', 'jade');
@@ -128,13 +156,24 @@ main.configure(function(){
   main.use(express.bodyParser());
   main.use(express.methodOverride());
   main.use(express.cookieParser());
+  main.use(checkApiKey());
   main.use(express.session({ /*store: new mongoStore({db : main.set('db-uri')}), */ secret: config.SessionSecret }));
-  main.use(express.csrf());
+  main.use(express.csrf(    { 
+      value: function (req){
+        return (req.body && req.body._csrf)
+          || (req.query && req.query._csrf)
+          || (req.headers['x-csrf-token'])
+          // Skip the CSRF check for API requests
+          || (req.apikey && req.session._csrf);
+      }
+    }
+    ));
+  //main.use(debug());
   main.use(main.router);
 });
 
 main.dynamicHelpers(
-  { csrf: function(req,res){ return req.session._csrf; }
+  { csrf: function(req,res){ return req.session && req.session._csrf; }
   }
 );
 
@@ -152,10 +191,10 @@ main.get('/signin', function (req, res){
 });
 
 main.post('/signin', function (req, res){
+
   if ((req.body.username === user.username) &&
       (req.body.password && auth(req.body.password, user.hashed_password, user.salt))) {
     var redirect_url = req.session.originalUrl;
-    console.log(redirect_url);
     req.session.regenerate(function (){
       // Add the user data to the session variable for convenience
       req.session.user = user;
@@ -187,19 +226,34 @@ main.get('/create', middleware.authUser, function (req, res){
   );
 });
 
-main.post('/create', middleware.authUser, function (req, res){
-  models.Url.findByUrl(req.body.url, function (err, doc){
+function shorten (req, res){
+
+  function respond (doc){
+    if (req.params.format && req.params.format.toLowerCase() === 'json')
+      res.json(doc);
+    else
+      res.send(doc.shorturl, { 'Content-Type': 'text/plain' }, 200);
+  }
+
+  var url;
+  if (req.body && req.body.url) url = req.body.url;
+  else if (req.query && req.query.url) url = req.query.url;
+  else return res.send(400);
+  models.Url.findByUrl(url, function (err, doc){
     if (err) res.send(err.message, 500);
-    else if (doc) res.json(doc.toJSON(config.BaseUrl));
+    else if (doc) respond(doc.toJSON(config.BaseUrl));
     else {
-      var u = new models.Url({longurl: req.body.url });
+      var u = new models.Url({longurl: url });
       u.save(function (err){
         if (err) res.send(err.message, 500);
-        else res.json(u.toJSON(config.BaseUrl));
+        else respond(u.toJSON(config.BaseUrl));
       });
     }
   });
-});
+}
+
+main.get('/shorten.:format?', middleware.authUser, shorten);
+main.post('/shorten.:format?', middleware.authUser, shorten);
 
 main.all('/', function (req, res){
   res.redirect('/signin');
