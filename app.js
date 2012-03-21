@@ -128,7 +128,7 @@ main.configure(function(){
   main.use(express.bodyParser());
   main.use(express.methodOverride());
   main.use(express.cookieParser());
-  main.use(express.session({ store: new mongoStore({db : main.set('db-uri')}), secret: config.SessionSecret }));
+  main.use(express.session({ /*store: new mongoStore({db : main.set('db-uri')}), */ secret: config.SessionSecret }));
   main.use(express.csrf());
   main.use(main.router);
 });
