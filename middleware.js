@@ -12,16 +12,6 @@ function loggedIn (req, res, next){
 };
 exports.loggedIn = loggedIn;
 
-exports.authUser = authUser = function (req, res, next){
-  if (req.session.user && req.session.username) next();
-  else if (req.cookies.logintoken) {
-    authenticateFromLoginToken(req, res, next);
-  } else {
-    req.session.originalUrl = req.originalUrl;
-    res.redirect('/signin');
-  }
-}
-
 function authenticateFromLoginToken (req, res, next){
   var cookie = JSON.parse(req.cookies.logintoken);
 
@@ -48,3 +38,14 @@ function authenticateFromLoginToken (req, res, next){
   });
 }
 exports.authenticateFromLoginToken = authenticateFromLoginToken;
+
+function authUser (req, res, next){
+  if (req.session.user && req.session.username) next();
+  else if (req.cookies.logintoken) {
+    authenticateFromLoginToken(req, res, next);
+  } else {
+    req.session.originalUrl = req.originalUrl;
+    res.redirect('/signin');
+  }
+}
+exports.authUser = authUser;
