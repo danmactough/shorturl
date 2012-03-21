@@ -53,7 +53,7 @@ red.param('info', function (req, res, next){
 red.get('/:shorturl([^\+\.]+)', function (req, res){
   models.Url.findOne({ shorturl: req.params.shorturl })
     .run(function (err, doc){
-      if (err) res.error(err);
+      if (err) res.send(err.message, 500);
       else if (doc) {
         var timestamp = new Date()
           , hit = new models.Hits();
@@ -77,11 +77,11 @@ red.get('/:shorturl([^\+\.]+)', function (req, res){
 });
 
 red.get('/:shorturl([^\+\.]+):info([\+])?.:format?', function (req, res){
-  if (!(req.getInfo || req.getJSON)) res.error(400);
+  if (!(req.getInfo || req.getJSON)) res.send(400);
   else {
     models.Url.findOne({ shorturl: req.params.shorturl })
       .run(function (err, result){
-        if (err) res.error(err);
+        if (err) res.send(err.message, 500);
         else if (result) {
           var doc = result.toJSON(config.BaseUrl)
           if (req.getJSON)
@@ -185,12 +185,12 @@ main.get('/create', middleware.authUser, function (req, res){
 
 main.post('/create', middleware.authUser, function (req, res){
   models.Url.findByUrl(req.body.url, function (err, doc){
-    if (err) res.error(err);
+    if (err) res.send(err.message, 500);
     else if (doc) res.json(doc.toJSON(config.BaseUrl));
     else {
       var u = new models.Url({longurl: req.body.url });
       u.save(function (err){
-        if (err) res.error(err);
+        if (err) res.send(err.message, 500);
         else res.json(u.toJSON(config.BaseUrl));
       });
     }
