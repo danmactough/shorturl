@@ -49,12 +49,11 @@ if (!module.parent) {
   if (process.argv.length !== 5) {
     console.error('You must provide a username, password, and output filename');
     process.exit(1);
-  }
-  else {
+  } else {
     var username = process.argv[2]
       , password = process.argv[3]
       , outfile = process.argv[4];
+    console.log(newUser(username, password, outfile));
+    process.nextTick(process.exit);
   }
-  console.log(newUser(username, password, outfile));
-  process.nextTick(process.exit);
 }
