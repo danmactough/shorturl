@@ -5,6 +5,7 @@
   , "dependencies": {
       "connect-mongodb": "1.x"
     , "express": "2.5.8"
+    , "express-messages-bootstrap": "0.0.x"
     , "jade": ">= 0.0.1"
     , "mongoose": "2.x"
     , "NewBase60": "1.x"

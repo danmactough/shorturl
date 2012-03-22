@@ -7,6 +7,7 @@
  */
 
 var express = require('express')
+  , expressMessages = require('express-messages-bootstrap')
   , mongoStore = require('connect-mongodb')
   , models = require('./models')
   , routes = require('./routes')
@@ -131,8 +132,7 @@ function checkApiKey (){
       req.apikey = key;
       req.session = {}; // Mock the session so it doesn't generate
       next();
-    }
-    else {
+    } else {
       var e = new Error('Unauthorized (bad API key)');
       e.status = 403;
       next(e);
@@ -157,7 +157,7 @@ main.configure(function(){
   main.use(express.methodOverride());
   main.use(express.cookieParser());
   main.use(checkApiKey());
-  main.use(express.session({ /*store: new mongoStore({db : main.set('db-uri')}), */ secret: config.SessionSecret }));
+  main.use(express.session({ store: new mongoStore({ url : main.set('db-uri') }), secret: config.SessionSecret }));
   main.use(express.csrf(    { 
       value: function (req){
         return (req.body && req.body._csrf)
@@ -174,6 +174,11 @@ main.configure(function(){
 
 main.dynamicHelpers(
   { csrf: function(req,res){ return req.session && req.session._csrf; }
+  , messages: expressMessages
+  , loggedIn: function(req,res){
+    // This is not a security function, just a hint that is used for the navbar
+    return (req.session.username || req.cookies.logintoken);
+    }
   }
 );
 
@@ -190,7 +195,7 @@ main.get('/signin', function (req, res){
   }
 });
 
-main.post('/signin', function (req, res){
+main.post('/sessions', function (req, res){
 
   if ((req.body.username === user.username) &&
       (req.body.password && auth(req.body.password, user.hashed_password, user.salt))) {
@@ -214,7 +219,20 @@ main.post('/signin', function (req, res){
       });
     });
   } else {
+    req.flash('error', 'Your username and password did not match. Please try again.');
     res.redirect('back');
+  }
+});
+
+main.del('/sessions', middleware.authUser, function (req, res){
+  // destroy the user's session to log them out
+  // will be re-created next request
+  if (req.session) {
+    models.LoginToken.remove({ username: req.session.username }, function() {} );
+    req.session.destroy(function(){
+      res.clearCookie('logintoken');
+      res.redirect('/signin');
+    });
   }
 });
 
