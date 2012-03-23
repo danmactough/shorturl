@@ -12,11 +12,12 @@ html
     .container
       .page-header
         h1= title
-        -if (loggedIn)
+        -if (typeof loggedIn != 'undefined' && loggedIn)
           i#logout.icon-off(style='cursor: pointer; position: absolute; top: 10px; left: 10px;')
       #content.content
         .row-fluid
-          != messages()
+          -if (typeof messages != 'undefined')
+            != messages()
           .alert.alert-error.span6(style='display: none;')
         .row-fluid
           .span6!= body

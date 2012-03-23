@@ -38,16 +38,7 @@ red.configure(function(){
 });
 
 red.param('format', function (req, res, next){
-  if (req.params.format && req.params.format.toLowerCase() === 'json')
-    req.getJSON = true;
-  else req.getJSON = false;
-  next();
-});
-
-red.param('info', function (req, res, next){
-  if (req.params.info && req.params.info === '+')
-    req.getInfo = true;
-  else req.getInfo = false;
+  req.params.format = req.params.format.toLowerCase();
   next();
 });
 
@@ -78,14 +69,14 @@ red.get('/:shorturl([^\+\.]+)', function (req, res){
 });
 
 red.get('/:shorturl([^\+\.]+):info([\+])?.:format?', function (req, res){
-  if (!(req.getInfo || req.getJSON)) res.send(400);
+  if (!(req.params.info === '+' || req.params.format === 'json')) res.send(400);
   else {
     models.Url.findOne({ shorturl: req.params.shorturl })
       .run(function (err, result){
         if (err) res.send(err.message, 500);
         else if (result) {
           var doc = result.toJSON(config.BaseUrl)
-          if (req.getJSON)
+          if (req.params.format === 'json')
             res.json(doc);
           else {
             res.render('info', {
@@ -182,12 +173,19 @@ main.dynamicHelpers(
   }
 );
 
+// Params
+
+main.param('format', function (req, res, next){
+  req.params.format = req.params.format.toLowerCase();
+  next();
+});
+
 // Routes
 
 var middleware = require('./middleware');
 
 main.get('/signin', function (req, res){
-  if (req.session.active) res.redirect('/create');
+  if (req.session.username || req.cookies.logintoken) res.redirect('/create');
   else {
     res.render('signin',
       { title: 'Sign In' }
@@ -236,10 +234,10 @@ main.del('/sessions', middleware.authUser, function (req, res){
   }
 });
 
-main.get('/create', middleware.authUser, function (req, res){
+main.get('/create', middleware.authUser, middleware.validateLongUrl, function (req, res){
   res.render('create',
     { title: 'Create a New Short Url'
-    , url: req.query.url || ''
+    , url: req.params.url || ''
     }
   );
 });
@@ -247,21 +245,20 @@ main.get('/create', middleware.authUser, function (req, res){
 function shorten (req, res){
 
   function respond (doc){
-    if (req.params.format && req.params.format.toLowerCase() === 'json')
+    if (req.params.format === 'json')
       res.json(doc);
     else
       res.send(doc.shorturl, { 'Content-Type': 'text/plain' }, 200);
   }
 
-  var url;
-  if (req.body && req.body.url) url = req.body.url;
-  else if (req.query && req.query.url) url = req.query.url;
-  else return res.send(400);
-  models.Url.findByUrl(url, function (err, doc){
+  if (!(req.params && req.params.url))
+    return res.send(400);
+
+  models.Url.findByUrl(req.params.url, function (err, doc){
     if (err) res.send(err.message, 500);
     else if (doc) respond(doc.toJSON(config.BaseUrl));
     else {
-      var u = new models.Url({longurl: url });
+      var u = new models.Url({longurl: req.params.url });
       u.save(function (err){
         if (err) res.send(err.message, 500);
         else respond(u.toJSON(config.BaseUrl));
@@ -270,8 +267,8 @@ function shorten (req, res){
   });
 }
 
-main.get('/shorten.:format?', middleware.authUser, shorten);
-main.post('/shorten.:format?', middleware.authUser, shorten);
+main.get('/shorten.:format?', middleware.authUser, middleware.validateLongUrl, shorten);
+main.post('/shorten.:format?', middleware.authUser, middleware.validateLongUrl, shorten);
 
 main.all('/', function (req, res){
   res.redirect('/signin');

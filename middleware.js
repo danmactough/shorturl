@@ -51,3 +51,15 @@ function authUser (req, res, next){
   }
 }
 exports.authUser = authUser;
+
+function validateLongUrl (req, res, next){
+  var longurl;
+  if (req.params && req.params.url) longurl = req.body.url;
+  else if (req.body && req.body.url) req.params.url = longurl = req.body.url;
+  else if (req.query && req.query.url) req.params.url = longurl = req.query.url;
+
+  if (!longurl) next(); // No need to raise an error here
+  else if (!/^[A-Za-z][A-Za-z0-9\+\.\-]+:\/\//.test(longurl)) next(new Error('Invalid URL'));
+  else next();
+}
+exports.validateLongUrl = validateLongUrl;
