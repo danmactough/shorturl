@@ -1,3 +1,15 @@
-var models = require('./models')
+var models = require('../models')
 
-models.CounterInit(1000, console.error);
+if (!module.parent) {
+  var c = +process.argv[2] || 59;
+  models.CounterInit(c, function(e){
+console.log(c)
+    if (e) {
+      console.error(e);
+      process.nextTick(function(){
+        process.exit(1)
+      });
+    }
+    else process.nextTick(process.exit);
+  });
+}
