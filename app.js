@@ -90,6 +90,8 @@ red.get('/:shorturl([^\+\.]+):info([\+])?.:format?', function (req, res){
   }
 });
 
+red.all('/', function (req, res){ res.redirect(config.ShortenerUrl); });
+
 red.all('*', function (req, res){
   res.send(404);
 });
