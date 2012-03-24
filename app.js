@@ -184,6 +184,13 @@ main.param('format', function (req, res, next){
 
 var middleware = require('./middleware');
 
+main.error(function (err, req, res, next){
+  if (err instanceof Error) {
+    res.send(err.message, err.status);
+  }
+  else next();
+});
+
 main.get('/signin', function (req, res){
   if (req.session.username || req.cookies.logintoken) res.redirect('/create');
   else {
