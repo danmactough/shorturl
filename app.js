@@ -95,8 +95,7 @@ red.all('*', function (req, res){
   res.send(404);
 });
 
-var main;
-exports.main = main = express.createServer();
+main = exports.main = express.createServer();
 
 // Configuration
 

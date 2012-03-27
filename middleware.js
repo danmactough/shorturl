@@ -3,7 +3,7 @@
  */
 
 var models = require('./models')
-  , main = require('./app').main
+  , main = global.main || {}
   ;
 
 function loggedIn (req, res, next){
@@ -23,12 +23,14 @@ function authenticateFromLoginToken (req, res, next){
       req.session.redirect_to = req.originalUrl;
       res.redirect('/signin');
     } else if (token.username === main.set('user').username) {
-        req.session.user = main.set('user');
-        req.session.username = main.set('user').username;
-        token.token = token.randomToken();
-        token.save(function (){
-          res.cookie('logintoken', token.cookieValue, { expires: new Date(Date.now() + 2 * 604800000), path: '/' }); // 2 weeks
-          next();
+        req.session.regenerate(function (){
+          req.session.user = main.set('user');
+          req.session.username = main.set('user').username;
+          token.token = token.randomToken();
+          token.save(function (){
+            res.cookie('logintoken', token.cookieValue, { expires: new Date(Date.now() + 2 * 604800000), path: '/' }); // 2 weeks
+            next();
+          });
         });
     } else {
       req.flash('error', 'It looks like your session expired. You must be log back in to use this feature.');
