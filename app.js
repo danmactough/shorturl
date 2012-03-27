@@ -16,6 +16,10 @@ var express = require('express')
   , user = require('./user')
   ;
 
+process.on('uncaughtException', function (err) {
+  console.error('%s - Caught exception: %s', new Date(), err);
+});
+
 var red = express.createServer();
 
 red.configure('development', function(){
