@@ -1,5 +1,5 @@
 /**
- * Shorty - A url shortener
+ * Shorturl - A url shortener
  */
 
 /**
@@ -43,29 +43,28 @@ red.param('format', function (req, res, next){
 });
 
 red.get('/:shorturl([^\+\.]+)', function (req, res){
-  models.Url.findOne({ shorturl: req.params.shorturl })
-    .run(function (err, doc){
-      if (err) res.send(err.message, 500);
-      else if (doc) {
-        var timestamp = new Date()
-          , hit = new models.Hits();
-        hit.ip = req.connection['remoteAddress'];
-        hit.referer = req.headers['referer'];
-        hit.useragent = req.headers['user-agent'];
-        hit.timestamp = timestamp;
-        hit.url = doc._id;
-        hit.save(function (err){
-          if (err && !/E11000 duplicate key error index/.test(err.err)) console.error(err);
-          else if (!err) {
-            doc.hits.count++;
-            doc.hits.lasttimestamp = timestamp;
-            doc.save();
-          }
-          res.redirect(doc.longurl, 301);
-        });
-      }
-      else res.send(404);
-    });
+  models.Url.findByShorturl({ shorturl: req.params.shorturl }, function (err, doc){
+    if (err) res.send(err.message, 500);
+    else if (doc) {
+      var timestamp = new Date()
+        , hit = new models.Hits();
+      hit.ip = req.connection['remoteAddress'];
+      hit.referer = req.headers['referer'];
+      hit.useragent = req.headers['user-agent'];
+      hit.timestamp = timestamp;
+      hit.url = doc._id;
+      hit.save(function (err){
+        if (err && !/E11000 duplicate key error index/.test(err.err)) console.error(err);
+        else if (!err) {
+          doc.hits.count++;
+          doc.hits.lasttimestamp = timestamp;
+          doc.save();
+        }
+      });
+      res.redirect(doc.longurl, 301);
+    }
+    else res.send(404);
+  });
 });
 
 red.get('/:shorturl([^\+\.]+):info([\+])?.:format?', function (req, res){
@@ -278,6 +277,17 @@ function shorten (req, res){
 
 main.get('/shorten.:format?', middleware.authUser, middleware.validateLongUrl, shorten);
 main.post('/shorten.:format?', middleware.authUser, middleware.validateLongUrl, shorten);
+
+main.get('/info.:format?', middleware.authUser, function (req, res){
+  var query = {};
+  if (req.query && req.query.since) query = { 'hits.lasttimestamp': { '$gte': new Date(+req.query.since) } };
+  models.Url.find(query)
+    .desc('hits.lasttimestamp')
+    .run(function (err, docs){
+      if (err) res.send(err.message, 500);
+      else res.json(docs.map(function (u){return u.toJSON(config.BaseUrl);}));
+    });
+});
 
 main.all('/', function (req, res){
   res.redirect('/signin');

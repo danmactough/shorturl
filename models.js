@@ -70,6 +70,7 @@ var UrlSchema = new Schema({
 UrlSchema.index({ ct: -1 }, { unique: true });
 UrlSchema.index({ shorturl: -1 }, { unique: true });
 UrlSchema.index({ longurl: 1 }, { unique: true });
+UrlSchema.index({ 'hits.lasttimestamp': -1 }, { sparse: true });
 
 UrlSchema.plugin(shorturlGenerator());
 
