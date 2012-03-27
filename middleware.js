@@ -56,7 +56,7 @@ exports.authUser = authUser;
 
 function validateLongUrl (req, res, next){
   var longurl;
-  if (!params in req) req.params = {};
+  if (!'params' in req) req.params = {};
 
   if (req.params && req.params.url) longurl = req.params.url;
   else if (req.body && req.body.url) req.params.url = longurl = req.body.url;
