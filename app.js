@@ -47,7 +47,7 @@ red.param('format', function (req, res, next){
 });
 
 red.get('/:shorturl([^\+\.]+)', function (req, res){
-  models.Url.findByShorturl({ shorturl: req.params.shorturl }, function (err, doc){
+  models.Url.findByShorturl(req.params.shorturl).run(function (err, doc){
     if (err) res.send(err.message, 500);
     else if (doc) {
       var timestamp = new Date()
@@ -74,7 +74,7 @@ red.get('/:shorturl([^\+\.]+)', function (req, res){
 red.get('/:shorturl([^\+\.]+):info([\+])?.:format?', function (req, res){
   if (!(req.params.info === '+' || req.params.format === 'json')) res.send(400);
   else {
-    models.Url.findOne({ shorturl: req.params.shorturl })
+    models.Url.findByShorturl(req.params.shorturl)
       .run(function (err, result){
         if (err) res.send(err.message, 500);
         else if (result) {
