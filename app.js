@@ -52,7 +52,7 @@ red.get('/:shorturl([^\+\.]+)', function (req, res){
     else if (doc) {
       var timestamp = new Date()
         , hit = new models.Hits();
-      hit.ip = req.connection['remoteAddress'];
+      hit.ip = req.headers['x-forwarded-for'] || req.connection['remoteAddress'];
       hit.referer = req.headers['referer'];
       hit.useragent = req.headers['user-agent'];
       hit.timestamp = timestamp;
