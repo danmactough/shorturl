@@ -39,7 +39,7 @@ red.configure(function(){
   red.set('views', __dirname + '/views');
   red.set('view engine', 'jade');
   red.set('view options', { pretty: true });
-  red.use(express.static(__dirname + '/public'));
+  config.static && red.use(express.static(__dirname + '/public'));
   red.use(express.bodyParser());
   red.use(red.router);
 });
@@ -149,7 +149,7 @@ main.configure(function(){
   main.set('views', __dirname + '/views');
   main.set('view engine', 'jade');
   main.set('view options', { pretty: true });
-  main.use(express.static(__dirname + '/public'));
+  config.static && main.use(express.static(__dirname + '/public'));
   main.use(express.query());
   main.use(express.bodyParser());
   main.use(express.methodOverride());

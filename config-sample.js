@@ -7,6 +7,7 @@ exports = module.exports = {
   , BaseUrl : ''
   , ShortenerUrl : ''
   , env : 'development'
+  , static: true
   , db : { uri : {
            test : ''
          , development : ''
