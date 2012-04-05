@@ -9,12 +9,15 @@
 var express = require('express')
   , expressMessages = require('express-messages-bootstrap')
   , mongoStore = require('connect-mongodb')
+  , net = require('net')
   , models = require('./models')
   , routes = require('./routes')
   , auth = require('./scripts/newUser').auth
   , config = require('./config')
   , user = require('./user')
   ;
+
+process.env.NODE_ENV = process.env.NODE_ENV || config.env || 'development';
 
 process.on('uncaughtException', function (err) {
   console.error('%s - Caught exception: %s', new Date(), err);
@@ -300,18 +303,21 @@ main.all('*', function (req, res){
   res.send(404);
 });
 
-var app = module.exports = express.createServer();
+/* Only listen on $ node app.js */
+if (!module.parent) {
+  red.listen(config.port_redirector);
+  console.log("Express server listening on port %d in %s mode", red.address().port, red.settings.env);
+  if (config.port_REPL_redirector) {
+    net.createServer(function (socket) {
+      require('repl').start("node via TCP socket> ", socket).context.app = red;
+    }).listen(config.port_REPL_redirector);
+  }
 
-app.configure('development', function(){
-  app.use(express.errorHandler({ dumpExceptions: true, showStack: true }));
-});
-
-app.configure('production', function(){
-  app.use(express.errorHandler());
-});
-
-app.use(express.vhost(config.vhost_redirector, red));
-app.use(express.vhost(config.vhost_main, main));
-
-app.listen(config.HTTPPort);
-console.log("Express server listening on port %d in %s mode", app.address().port, app.settings.env);
+  main.listen(config.port_main);
+  console.log("Express server listening on port %d in %s mode", main.address().port, main.settings.env);
+  if (config.port_REPL_main) {
+    net.createServer(function (socket) {
+      require('repl').start("node via TCP socket> ", socket).context.app = main;
+    }).listen(config.port_REPL_main);
+  }
+}

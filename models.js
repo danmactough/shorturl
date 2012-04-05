@@ -4,7 +4,8 @@
 
 var mongoose = require('mongoose')
   , NewBase60 = require('NewBase60')
-  , env = process.env.NODE_ENV || 'development'
+  , config = require('./config')
+  , env = process.env.NODE_ENV || config.env || 'development'
   ;
 
 var Schema = mongoose.Schema
@@ -149,8 +150,6 @@ exports.Url        = Url        = mongoose.model('Url',        UrlSchema);
 exports.Hits       = Hits       = mongoose.model('Hits',       HitSchema);
 exports.LoginToken = LoginToken = mongoose.model('LoginToken', LoginTokenSchema);
 
-exports.dbUri = { test:        'mongodb://localhost/shorturl-test'
-                , development: 'mongodb://localhost/shorturl-development'
-                , production:  'mongodb://localhost/shorturl-production' };
+exports.dbUri = config.db.uri;
 
 db = mongoose.connect( exports.dbUri[env] ); // db is a GLOBAL
