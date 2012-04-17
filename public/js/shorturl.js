@@ -3,26 +3,16 @@ function closeMessages() {
   var self = this;
   $(self).fadeOut();
   setTimeout(function() {
-    $(self).parent('.alert').hide();
     $(self).remove();
   }, 500);
 }
-
-setTimeout(function() {
-  $('#messages').each(closeMessages);
-}, 5000);
-
-$('#messages').on('click', closeMessages);
-
 function message( type, msg ) {
-  var flash = '<div id="messages"><div class="alert-message ' + type + '" data-alert="alert"><a class="close" href="#">&times;</a><p>' + msg + '</p></div></div>';
-  $('.alert').empty().append( flash ).show();
-
+  var flash = $('<div id="messages"><div class="alert alert-' + type + '" data-alert="alert"><a class="close" href="#">&times;</a>' + msg + '</div></div>');
+  $(flash).prependTo($('.alert-container')).fadeIn(); //.on('click', closeMessages);
   setTimeout(function() {
     $('#messages').each(closeMessages);
   }, 5000);
 }
-
 function request( uri, method, data /* optional */, contentType /* optional */, successCallback, errCallback ){
   if (typeof data == 'function') {
     errCallback = contentType;
@@ -54,9 +44,7 @@ $('form#createurl').submit(function(e){
   request($(form).attr('action'), 'POST', data, 'application/x-www-form-urlencoded',
     function(res){
       $(form).find('input#url').val(null);
-      $('.alert').empty().hide();
-      $('div.results a').attr('href', res.shorturl).html(res.shorturl);
-      $('#results-modal').modal();
+      void prompt('Shortened URL:', res.shorturl);
     },
     function(e, jqxhr, settings, exception){
       var err = '';
@@ -88,4 +76,13 @@ $('#logout').click(function(e) {
         .submit();
     }
   });
+
+// The following run on each page load
+
+$(document).on('click', '#messages', closeMessages);
+
+setTimeout(function() {
+  $('#messages').each(closeMessages);
+}, 5000);
+
 })();

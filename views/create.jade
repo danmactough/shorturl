@@ -6,10 +6,3 @@ form#createurl.form-inline(action='/shorten.json', method='post')
       .controls
         input#url.input-xlarge(value=url, name='url', placeholder='http://', type='text')
         input.btn.btn-primary.btn-medium(value='Create', type='submit')
-#results-modal.modal.fade
-  .modal-header
-    a.close(data-dismiss='modal') &times;
-    h3 Shortened URL
-  .modal-body
-    .results
-      a(href='', target='_blank')
