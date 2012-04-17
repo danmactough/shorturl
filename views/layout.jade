@@ -14,18 +14,18 @@ html
     .container
       .page-header
         h1= title
-        -if (typeof loggedIn != 'undefined' && loggedIn)
+        -if (locals.loggedIn)
           i#logout.icon-off(style='cursor: pointer; position: absolute; top: 10px; left: 10px;')
       #content.content
         .row-fluid
-          -if (typeof messages != 'undefined')
-            != messages()
-          .alert.alert-error.span6(style='display: none;')
+          .alert-container
+            -if ('messages' in locals)
+              != locals.messages()
         .row-fluid
           .span6!= body
     script(type='text/javascript', src='/js/bootstrap.min.js')
     script(type='text/javascript', src='/js/shorturl.js')
-    -if (typeof url != 'undefined' && url)
+    -if (locals.url)
       script(type='text/javascript')
         (function(){
         $('form#createurl').submit();
