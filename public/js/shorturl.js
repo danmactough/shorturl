@@ -1,17 +1,9 @@
 (function(){
-function closeMessages() {
-  var self = this;
-  $(self).fadeOut();
-  setTimeout(function() {
-    $(self).remove();
-  }, 500);
-}
 function message( type, msg ) {
   var flash = $('<div id="messages"><div class="alert alert-' + type + '" data-alert="alert"><a class="close" href="#">&times;</a>' + msg + '</div></div>');
-  $(flash).prependTo($('.alert-container')).fadeIn(); //.on('click', closeMessages);
-  setTimeout(function() {
-    $('#messages').each(closeMessages);
-  }, 5000);
+  $(flash).prependTo($('.alert-container')).fadeIn().delay(5000).fadeOut(400, function(){
+    $(this).remove();
+  });
 }
 function request( uri, method, data /* optional */, contentType /* optional */, successCallback, errCallback ){
   if (typeof data == 'function') {
@@ -59,30 +51,30 @@ $('form#createurl').submit(function(e){
   return false;
 });    
 $('#logout').click(function(e) {
-    e.preventDefault();
-    if (confirm('Are you sure you want to log out?')) {
-      var element = $(this),
-          form = $('<form></form>');
-          csrf = $('input[name="_csrf"]');
-      form
-        .attr({
-          method: 'POST',
-          action: '/sessions'
-        })
-        .hide()
-        .append('<input type="hidden" name="_method" value="delete"/>')
-        .append(csrf)
-        .appendTo('body')
-        .submit();
-    }
-  });
-
+  e.preventDefault();
+  if (confirm('Are you sure you want to log out?')) {
+    var element = $(this),
+        form = $('<form></form>');
+        csrf = $('input[name="_csrf"]');
+    form
+      .attr({
+        method: 'POST',
+        action: '/sessions'
+      })
+      .hide()
+      .append('<input type="hidden" name="_method" value="delete"/>')
+      .append(csrf)
+      .appendTo('body')
+      .submit();
+  }
+});
 // The following run on each page load
-
-$(document).on('click', '#messages', closeMessages);
-
-setTimeout(function() {
-  $('#messages').each(closeMessages);
-}, 5000);
-
+$(document).on('click', '#messages', function (e){
+	$(e.target).fadeOut(100, function(){
+	  $(e.target).remove();
+	});
+});
+$('#messages').delay(5000).fadeOut(400, function(){
+  $(this).remove();
+});
 })();
