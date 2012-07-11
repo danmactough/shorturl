@@ -1,12 +1,12 @@
 {
     "name": "Shorturl"
-  , "version": "0.0.1"
+  , "version": "0.0.2"
   , "private": true
   , "dependencies": {
-      "connect-mongodb": "1.x"
-    , "express": "2.5.8"
+      "connect-mongodb": "https://github.com/danmactough/connect-mongodb/tarball/master"
+    , "express": "2.x"
     , "express-messages-bootstrap": "0.0.x"
-    , "jade": ">= 0.0.1"
+    , "jade": "0.x"
     , "mongoose": "2.x"
     , "NewBase60": "1.x"
     , "randpass": "0.1.x"
