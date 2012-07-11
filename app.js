@@ -50,7 +50,7 @@ red.param('format', function (req, res, next){
 });
 
 red.get('/:shorturl([^\+\.]+)', function (req, res){
-  models.Url.findByShorturl(req.params.shorturl).run(function (err, doc){
+  models.Url.findByShorturl(req.params.shorturl).exec(function (err, doc){
     if (err) res.send(err.message, 500);
     else if (doc) {
       var timestamp = new Date()
@@ -78,10 +78,10 @@ red.get('/:shorturl([^\+\.]+):info([\+])?.:format?', function (req, res){
   if (!(req.params.info === '+' || req.params.format === 'json')) res.send(400);
   else {
     models.Url.findByShorturl(req.params.shorturl)
-      .run(function (err, result){
+      .exec(function (err, result){
         if (err) res.send(err.message, 500);
         else if (result) {
-          var doc = result.toJSON(config.BaseUrl)
+          var doc = result.toJSON(config.BaseUrl);
           if (req.params.format === 'json')
             res.json(doc);
           else {
@@ -144,7 +144,7 @@ function debug (){
     console.log(req.body);
     next();
   };
-};
+}
 main.configure(function(){
   main.set('views', __dirname + '/views');
   main.set('view engine', 'jade');
@@ -158,11 +158,11 @@ main.configure(function(){
   main.use(express.session({ store: new mongoStore({ url : main.set('db-uri') }), secret: config.SessionSecret }));
   main.use(express.csrf(    { 
       value: function (req){
-        return (req.body && req.body._csrf)
-          || (req.query && req.query._csrf)
-          || (req.headers['x-csrf-token'])
+        return (req.body && req.body._csrf) ||
+          (req.query && req.query._csrf) ||
+          (req.headers['x-csrf-token']) ||
           // Skip the CSRF check for API requests
-          || (req.apikey && req.session._csrf);
+          (req.apikey && req.session._csrf);
       }
     }
     ));
@@ -288,8 +288,8 @@ main.get('/info.:format?', middleware.authUser, function (req, res){
   var query = {};
   if (req.query && req.query.since) query = { 'hits.lasttimestamp': { '$gte': new Date(+req.query.since) } };
   models.Url.find(query)
-    .desc('hits.lasttimestamp')
-    .run(function (err, docs){
+    .sort('hits.lasttimestamp', -1)
+    .exec(function (err, docs){
       if (err) res.send(err.message, 500);
       else res.json(docs.map(function (u){return u.toJSON(config.BaseUrl);}));
     });
