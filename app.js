@@ -20,7 +20,9 @@ var express = require('express')
 process.env.NODE_ENV = process.env.NODE_ENV || config.env || 'development';
 
 process.on('uncaughtException', function (err) {
-  console.error('%s - Caught exception: %s', new Date(), err);
+  console.error('%s - Uncaught exception', new Date());
+  console.error(err.stack);
+  process.exit(1);
 });
 
 var red = express.createServer();
