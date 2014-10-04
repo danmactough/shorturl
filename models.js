@@ -3,7 +3,7 @@
  */
 
 var mongoose = require('mongoose')
-  , NewBase60 = require('NewBase60')
+  , NewBase60 = require('./NewBase60')
   , config = require('./config')
   , env = process.env.NODE_ENV || config.env || 'development'
   ;
@@ -54,7 +54,7 @@ function shorturlGenerator (options){
       }
     }
   });
-  };        
+  };
 }
 
 var UrlSchema = new Schema({
@@ -93,7 +93,7 @@ UrlSchema.statics.findByUrl = function findByUrl (url, callback){
 
 UrlSchema.pre('save', function (next){
   if (this.isNew) this.created = new Date();
-  
+
   next();
 });
 
