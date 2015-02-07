@@ -3,7 +3,7 @@
  */
 
 var mongoose = require('mongoose')
-  , NewBase60 = require('./NewBase60')
+  , NewBase60 = require('newbase60')
   , config = require('./config')
   , env = process.env.NODE_ENV || config.env || 'development'
   ;
@@ -37,17 +37,17 @@ function shorturlGenerator (options){
       var self = this;
       if (self.shorturl && self.shorturl.length) {
         if (!self.ct) { // We have the shorturl, but not the ct -- must be importing!
-          self.ct = NewBase60.sxgtonum(self.shorturl);
+          self.ct = NewBase60.SxgToInt(self.shorturl);
           next();
         }
-        else if (self.ct != NewBase60.sxgtonum(self.shorturl))
+        else if (self.ct != NewBase60.SxgToInt(self.shorturl))
           next(new Error('Shorturl does not appear to be valid'));
       } else {
         Counter.collection.findAndModify({ c: { $ne: -1 } }, [], { $inc: { c: 1 } }, { "new": true, upsert: true }, function (err, doc){
           if (err) next(err);
           else {
             self.ct = doc.c;
-            self.shorturl = NewBase60.numtosxg(self.ct);
+            self.shorturl = NewBase60.IntToSxg(self.ct);
             next();
           }
         });
