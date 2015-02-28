@@ -1,4 +1,4 @@
-!!! 5
+doctype html
 html
   head
     meta(charset='utf-8')
@@ -22,11 +22,12 @@ html
             -if ('messages' in locals)
               != locals.messages()
         .row-fluid
-          .span6!= body
+          .span6
+            block content
     script(type='text/javascript', src='/js/bootstrap.min.js')
     script(type='text/javascript', src='/js/shorturl.js')
     -if (locals.url)
-      script(type='text/javascript')
+      script(type='text/javascript').
         (function(){
         $('form#createurl').submit();
         })();
