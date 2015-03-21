@@ -19,7 +19,7 @@ function authenticateFromLoginToken (req, res, next){
                               series: cookie.series,
                               token: cookie.token }, function (err, token){
     if (!token) {
-      req.flash('error', 'You must be logged in to use this feature.');
+      req.error('You must be logged in to use this feature.');
       req.session.redirect_to = req.originalUrl;
       res.redirect('/signin');
     } else if (token.username === main.set('user').username) {
@@ -33,7 +33,7 @@ function authenticateFromLoginToken (req, res, next){
           });
         });
     } else {
-      req.flash('error', 'It looks like your session expired. You must be log back in to use this feature.');
+      req.error('It looks like your session expired. You must be log back in to use this feature.');
       req.session.redirect_to = req.originalUrl;
       res.redirect('/signin');
     }
@@ -47,7 +47,7 @@ function authUser (req, res, next){
   else if (req.cookies.logintoken) {
     authenticateFromLoginToken(req, res, next);
   } else {
-    req.flash('error', 'You must be logged in to use this feature.');
+    req.error('You must be logged in to use this feature.');
     req.session.originalUrl = req.originalUrl;
     res.redirect('/signin');
   }

@@ -3,7 +3,7 @@ extends layout
 block content
   form#createurl.form-inline(action='/shorten.json', method='post')
     fieldset
-      input(value=csrf, name='_csrf', type='hidden')
+      input(value=csrfToken(), name='_csrf', type='hidden')
       .control-group
         label.control-label(for='url') URL to shorten
         .controls

@@ -19,8 +19,8 @@ html
       #content.content
         .row-fluid
           .alert-container
-            -if ('messages' in locals)
-              != locals.messages()
+            -if (messages_rendered)
+              != rmessages()
         .row-fluid
           .span6
             block content
