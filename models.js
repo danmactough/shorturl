@@ -4,6 +4,7 @@
 
 var mongoose = require('mongoose')
   , NewBase60 = require('newbase60')
+  , urlResolve = require('url').resolve
   , env = process.env.NODE_ENV || 'development'
   , conf = require('./config')[env]
   ;
@@ -75,11 +76,11 @@ UrlSchema.index({ 'hits.lasttimestamp': -1 }, { sparse: true });
 
 UrlSchema.plugin(shorturlGenerator());
 
-UrlSchema.methods.toJSON = function (host){
+UrlSchema.methods.toJSON = function () {
   var obj = this.toObject();
   delete obj._id;
   delete obj.ct;
-  obj.shorturl = host + this.shorturl;
+  obj.shorturl = urlResolve(conf.redirector.url, this.shorturl);
   return obj;
 };
 

@@ -85,7 +85,7 @@ red.get('/:shorturl([^\+\.]+):info([\+])?.:format?', function (req, res){
       .exec(function (err, result){
         if (err) res.send(err.message, 500);
         else if (result) {
-          var doc = result.toJSON(conf.redirector.url);
+          var doc = result.toJSON();
           if (req.params.format === 'json')
             res.json(doc);
           else {
@@ -268,12 +268,12 @@ function shorten (req, res){
 
   models.Url.findByUrl(req.params.url, function (err, doc){
     if (err) res.send(err.message, 500);
-    else if (doc) respond(doc.toJSON(conf.redirector.url));
+    else if (doc) respond(doc.toJSON());
     else {
       var u = new models.Url({longurl: req.params.url });
       u.save(function (err){
         if (err) res.send(err.message, 500);
-        else respond(u.toJSON(conf.redirector.url));
+        else respond(u.toJSON());
       });
     }
   });
@@ -289,7 +289,7 @@ main.get('/info.:format?', middleware.authUser, function (req, res){
     .sort('hits.lasttimestamp', -1)
     .exec(function (err, docs){
       if (err) res.send(err.message, 500);
-      else res.json(docs.map(function (u){return u.toJSON(conf.redirector.url);}));
+      else res.json(docs.map(function (u){return u.toJSON();}));
     });
 });
 
