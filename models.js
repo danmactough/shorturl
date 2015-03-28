@@ -4,8 +4,8 @@
 
 var mongoose = require('mongoose')
   , NewBase60 = require('newbase60')
-  , config = require('./config')
-  , env = process.env.NODE_ENV || config.env || 'development'
+  , env = process.env.NODE_ENV || 'development'
+  , conf = require('./config')[env]
   ;
 
 var Schema = mongoose.Schema
@@ -150,6 +150,6 @@ exports.Url        = Url        = mongoose.model('Url',        UrlSchema);
 exports.Hits       = Hits       = mongoose.model('Hits',       HitSchema);
 exports.LoginToken = LoginToken = mongoose.model('LoginToken', LoginTokenSchema);
 
-exports.dbUri = config.db.uri;
+exports.dbUri = conf.db.uri;
 
-db = mongoose.connect( exports.dbUri[env] ); // db is a GLOBAL
+db = mongoose.connect( exports.dbUri ); // db is a GLOBAL
