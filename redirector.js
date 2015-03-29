@@ -3,7 +3,6 @@
  */
 
 var path = require('path'),
-    mongoose = require('mongoose'),
     debug = require('debug')('shorturl:redirector');
 
 var express = require('express'),
@@ -39,7 +38,7 @@ app.param('format', function (req, res, next){
   next();
 });
 
-app.get('/:shorturl([^\+\.]+)', function (req, res){
+app.get('/:shorturl([^\+\.]+)', function (req, res, next) {
   models.Url.findByShorturl(req.params.shorturl).exec(function (err, doc){
     if (err) return next(err);
     else if (doc) {
@@ -64,7 +63,7 @@ app.get('/:shorturl([^\+\.]+)', function (req, res){
   });
 });
 
-app.get('/:shorturl([^\+\.]+):info([\+])?.:format?', function (req, res){
+app.get('/:shorturl([^\+\.]+):info([\+])?.:format?', function (req, res, next) {
   if (!(req.params.info === '+' || req.params.format === 'json')) res.sendStatus(400);
   else {
     models.Url.findByShorturl(req.params.shorturl)

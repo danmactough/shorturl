@@ -29,7 +29,6 @@ require('express-app-set-nested');
 
 var env = process.env.NODE_ENV = process.env.NODE_ENV || 'development';
 var conf = require('./config')[env];
-var pkg = require('./package.json');
 
 var app = module.exports = express();
 
@@ -199,7 +198,7 @@ function shorten (req, res, next){
 app.get('/shorten.:format?', require('./middleware/authenticate'), require('./middleware/validate-longurl'), shorten);
 app.post('/shorten.:format?', require('./middleware/authenticate'), require('./middleware/validate-longurl'), shorten);
 
-app.get('/info.:format?', require('./middleware/authenticate'), function (req, res){
+app.get('/info.:format?', require('./middleware/authenticate'), function (req, res, next) {
   var query = {};
   if (req.query && req.query.since) query = { 'hits.lasttimestamp': { '$gte': new Date(+req.query.since) } };
   models.Url.find(query)
