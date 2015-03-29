@@ -1,8 +1,20 @@
-
-/*
- * GET home page.
+/**
+ * Fall-through routes
  */
 
-exports.index = function(req, res){
-  res.render('index', { title: 'Express' })
+/**
+ * Module dependencies.
+ */
+var debug = require('debug')('shorturl:routes:index');
+
+module.exports = function (app) {
+  app.all('/', function (req, res){
+    debug('Redirecting to signin');
+    res.redirect('/signin');
+  });
+
+  app.all('*', function (req, res){
+    debug('Not found');
+    res.sendStatus(404);
+  });
 };
