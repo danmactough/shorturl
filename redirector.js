@@ -62,12 +62,12 @@ app.get('/:shorturl([^\+\.]+)', function (req, res){
       });
       res.redirect(301, doc.longurl);
     }
-    else res.send(404);
+    else res.sendStatus(404);
   });
 });
 
 app.get('/:shorturl([^\+\.]+):info([\+])?.:format?', function (req, res){
-  if (!(req.params.info === '+' || req.params.format === 'json')) res.send(400);
+  if (!(req.params.info === '+' || req.params.format === 'json')) res.sendStatus(400);
   else {
     models.Url.findByShorturl(req.params.shorturl)
       .exec(function (err, result){
@@ -83,7 +83,7 @@ app.get('/:shorturl([^\+\.]+):info([\+])?.:format?', function (req, res){
             });
           }
         }
-        else res.send(404);
+        else res.sendStatus(404);
       });
   }
 });
@@ -91,7 +91,7 @@ app.get('/:shorturl([^\+\.]+):info([\+])?.:format?', function (req, res){
 app.all('/', function (req, res){ res.redirect(conf.shortener.url); });
 
 app.all('*', function (req, res){
-  res.send(404);
+  res.sendStatus(404);
 });
 
 app.locals = {

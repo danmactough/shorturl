@@ -184,7 +184,7 @@ function shorten (req, res){
   }
 
   if (!(req.params && req.params.url))
-    return res.send(400);
+    return res.sendStatus(400);
 
   models.Url.findByUrl(req.params.url, function (err, doc){
     if (err) res.send(err.message, 500);
@@ -218,7 +218,7 @@ app.all('/', function (req, res){
 });
 
 app.all('*', function (req, res){
-  res.send(404);
+  res.sendStatus(404);
 });
 
 if (env === 'development') {
