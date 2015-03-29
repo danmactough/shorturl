@@ -8,6 +8,7 @@
 
 var http = require('http'),
     path = require('path'),
+    mongoose = require('mongoose'),
     debug = require('debug')('shorturl');
 
 var express = require('express'),
@@ -308,6 +309,9 @@ if (env === 'development') {
 
 /* Only listen on $ node app.js */
 if (!module.parent) {
+
+  mongoose.connect( conf.db.uri );
+
   http.createServer(red).listen(conf.redirector.port, conf.redirector.hostname || '0.0.0.0', function (err) {
     debug("%s v%s redirector listening on port %d in %s mode", red.get('package.name'), red.get('package.version'), this.address().port, red.settings.env);
   });
