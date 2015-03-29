@@ -12,8 +12,13 @@ module.exports = function validateLongUrl (req, res, next) {
   else if (req.body && req.body.url) req.params.url = longurl = req.body.url;
   else if (req.query && req.query.url) req.params.url = longurl = req.query.url;
 
-  debug('longurl: %s', longurl);
   if (!longurl) next(); // No need to raise an error here
-  else if (!/^[A-Za-z][A-Za-z0-9\+\.\-]+:\/\//.test(longurl)) next(new Error('Invalid URL'));
-  else next();
+  else if (!/^[A-Za-z][A-Za-z0-9\+\.\-]+:\/\//.test(longurl)) {
+    debug('invalid longurl: %s', longurl);
+    next(new Error('Invalid URL'));
+  }
+  else {
+    debug('longurl: %s', longurl);
+    next();
+  }
 };

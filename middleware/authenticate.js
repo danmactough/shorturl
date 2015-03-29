@@ -20,6 +20,7 @@ module.exports = function authenticate (req, res, next){
     });
   } else {
     debug('not authenticated');
+    debug('Redirecting to signin');
     req.error('You must be logged in to use this feature.');
     req.session.originalUrl = req.originalUrl;
     res.redirect('/signin');
