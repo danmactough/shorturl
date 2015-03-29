@@ -5,9 +5,6 @@
 var mongoose = require('mongoose'),
     Schema = mongoose.Schema;
 
-// // Needs to be loaded first to be a ref
-// require('./Url');
-
 var HitSchema = new Schema({
   ip: { type: String, required: true },
   referer: { type: String },
