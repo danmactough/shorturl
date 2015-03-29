@@ -8,7 +8,7 @@ var glob = require('glob'),
 
 module.exports = glob.sync('*.js', { cwd: __dirname, ignore: path.basename(__filename) }).reduce(function (memo, file) {
   var ModelName = path.basename(file, '.js');
-  var Model = require('./' + file);
+  var Model = require(path.resolve(__dirname, file));
   debug('defining model %s', ModelName);
   memo[ModelName] = Model;
   return memo;
