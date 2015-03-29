@@ -106,8 +106,6 @@ app.param('format', function (req, res, next){
 
 // Routes
 
-var middleware = require('./middleware');
-
 app.get('/signin', function (req, res){
   if (req.session.username || req.cookies.logintoken) res.redirect('/create');
   else {
@@ -146,7 +144,7 @@ app.post('/sessions', function (req, res){
   }
 });
 
-app.delete('/sessions', middleware.authUser, function (req, res){
+app.delete('/sessions', require('./middleware/authenticate'), function (req, res){
   // destroy the user's session to log them out
   // will be re-created next request
   if (req.session) {
@@ -158,7 +156,7 @@ app.delete('/sessions', middleware.authUser, function (req, res){
   }
 });
 
-app.get('/create', middleware.authUser, middleware.validateLongUrl, function (req, res){
+app.get('/create', require('./middleware/authenticate'), require('./middleware/validate-longurl'), function (req, res){
   res.render('create',
     { title: 'Create a New Short Url'
     , url: req.params.url || ''
@@ -191,10 +189,10 @@ function shorten (req, res, next){
   });
 }
 
-app.get('/shorten.:format?', middleware.authUser, middleware.validateLongUrl, shorten);
-app.post('/shorten.:format?', middleware.authUser, middleware.validateLongUrl, shorten);
+app.get('/shorten.:format?', require('./middleware/authenticate'), require('./middleware/validate-longurl'), shorten);
+app.post('/shorten.:format?', require('./middleware/authenticate'), require('./middleware/validate-longurl'), shorten);
 
-app.get('/info.:format?', middleware.authUser, function (req, res){
+app.get('/info.:format?', require('./middleware/authenticate'), function (req, res){
   var query = {};
   if (req.query && req.query.since) query = { 'hits.lasttimestamp': { '$gte': new Date(+req.query.since) } };
   models.Url.find(query)
