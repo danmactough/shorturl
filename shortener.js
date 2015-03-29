@@ -69,7 +69,14 @@ app.set('views', path.resolve(__dirname, 'views'));
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
-app.use(methodOverride());
+app.use(methodOverride(function getter (req, res) {
+  if (req.body && typeof req.body === 'object' && '_method' in req.body) {
+    // look in urlencoded POST body and delete it
+    var method = req.body._method;
+    delete req.body._method;
+    return method;
+  }
+}));
 app.use(cookieParser());
 app.use(checkApiKey());
 app.use(session({
