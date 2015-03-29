@@ -174,7 +174,7 @@ app.get('/create', middleware.authUser, middleware.validateLongUrl, function (re
   );
 });
 
-function shorten (req, res){
+function shorten (req, res, next){
 
   function respond (doc){
     if (req.params.format === 'json')
@@ -187,12 +187,12 @@ function shorten (req, res){
     return res.sendStatus(400);
 
   models.Url.findByUrl(req.params.url, function (err, doc){
-    if (err) res.send(err.message, 500);
+    if (err) return next(err);
     else if (doc) respond(doc.toJSON());
     else {
       var u = new models.Url({longurl: req.params.url });
       u.save(function (err){
-        if (err) res.send(err.message, 500);
+        if (err) return next(err);
         else respond(u.toJSON());
       });
     }
@@ -208,16 +208,18 @@ app.get('/info.:format?', middleware.authUser, function (req, res){
   models.Url.find(query)
     .sort('hits.lasttimestamp', -1)
     .exec(function (err, docs){
-      if (err) res.send(err.message, 500);
+      if (err) return next(err);
       else res.json(docs.map(function (u){return u.toJSON();}));
     });
 });
 
 app.all('/', function (req, res){
+  debug('Redirecting to signin');
   res.redirect('/signin');
 });
 
 app.all('*', function (req, res){
+  debug('Not found');
   res.sendStatus(404);
 });
 

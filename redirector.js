@@ -43,7 +43,7 @@ app.param('format', function (req, res, next){
 
 app.get('/:shorturl([^\+\.]+)', function (req, res){
   models.Url.findByShorturl(req.params.shorturl).exec(function (err, doc){
-    if (err) res.send(err.message, 500);
+    if (err) return next(err);
     else if (doc) {
       var timestamp = new Date()
         , hit = new models.Hit();
@@ -53,7 +53,7 @@ app.get('/:shorturl([^\+\.]+)', function (req, res){
       hit.timestamp = timestamp;
       hit.url = doc._id;
       hit.save(function (err){
-        if (err && !/E11000 duplicate key error index/.test(err.err)) console.error(err);
+        if (err && !/E11000 duplicate key error index/.test(err.err)) debug(err);
         else if (!err) {
           doc.hits.count++;
           doc.hits.lasttimestamp = timestamp;
@@ -71,7 +71,7 @@ app.get('/:shorturl([^\+\.]+):info([\+])?.:format?', function (req, res){
   else {
     models.Url.findByShorturl(req.params.shorturl)
       .exec(function (err, result){
-        if (err) res.send(err.message, 500);
+        if (err) return next(err);
         else if (result) {
           var doc = result.toJSON();
           if (req.params.format === 'json')
@@ -88,9 +88,13 @@ app.get('/:shorturl([^\+\.]+):info([\+])?.:format?', function (req, res){
   }
 });
 
-app.all('/', function (req, res){ res.redirect(conf.shortener.url); });
+app.all('/', function (req, res){
+  debug('Redirecting to shortener');
+  res.redirect(conf.shortener.url);
+});
 
 app.all('*', function (req, res){
+  debug('Not found');
   res.sendStatus(404);
 });
 
