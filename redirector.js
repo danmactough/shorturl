@@ -18,12 +18,10 @@ require('express-app-set-nested');
 
 var env = process.env.NODE_ENV = process.env.NODE_ENV || 'development';
 var conf = require('./config')[env];
-var pkg = require('./package.json');
 
 var app = module.exports = express();
-Object.keys(pkg).forEach(function (prop) {
-  app.set('package.' + prop, pkg[prop]);
-});
+
+app.locals = require('./locals')(app);
 
 // Static file server
 app.use(static('public', { 'index':  false }));
@@ -97,10 +95,6 @@ app.all('*', function (req, res){
   debug('Not found');
   res.sendStatus(404);
 });
-
-app.locals = {
-  pretty: env === 'development'
-};
 
 if (env === 'development') {
   app.use(errorhandler({log: errorLogger.log}));

@@ -32,9 +32,8 @@ var conf = require('./config')[env];
 var pkg = require('./package.json');
 
 var app = module.exports = express();
-Object.keys(pkg).forEach(function (prop) {
-  app.set('package.' + prop, pkg[prop]);
-});
+
+app.locals = require('./locals')(app);
 
 // Configuration
 
@@ -68,9 +67,6 @@ app.engine('jade', jade.__express);
 app.set('view engine', 'jade');
 app.set('views', path.resolve(__dirname, 'views'));
 
-// Static view helpers
-// app.locals = require(path.resolve(__dirname, 'locals'));
-
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(methodOverride());
@@ -100,10 +96,6 @@ app.use(function (req, res, next) {
   res.locals.loggedIn = req.session.username || req.cookies.logintoken; // This is not a security function, just a hint that is used for the navbar
   next();
 });
-
-app.locals = {
-  pretty: env === 'development'
-};
 
 // Params
 
