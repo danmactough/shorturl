@@ -15,9 +15,11 @@ var express = require('express'),
     session = require('express-session'),
     static = require('serve-static'),
     bodyParser = require('body-parser'),
-    methodOverride = require('method-override'),
+    methodOverride = require(path.resolve(__dirname, 'middleware', 'method-override')),
+    checkApikey = require(path.resolve(__dirname, 'middleware', 'check-apikey')),
     cookieParser = require('cookie-parser'),
-    csrf = require('csurf'),
+    csrf = require(path.resolve(__dirname, 'middleware', 'csrf')),
+    requestLocals = require(path.resolve(__dirname, 'middleware', 'locals')),
     MongoStore = require('connect-mongo')(session),
     jade = require('jade'),
     errorLogger = require('./error-logger'),
@@ -38,26 +40,6 @@ app.locals = require('./locals')(app);
 
 app.set('user', user); // wut?
 
-function checkApiKey (){
-  return function (req, res, next){
-    var key = null;
-    if (req.body && req.body.apikey) key = req.body.apikey;
-    else if (req.query && req.query.apikey) key = req.query.apikey;
-    else if (req.headers['x-api-key']) key = req.headers['x-api-key'];
-    if (key === null) {
-      next();
-    } else if (key === app.set('user')['api_key']) {
-      req.apikey = key;
-      req.session = {}; // Mock the session so it doesn't generate
-      next();
-    } else {
-      var e = new Error('Unauthorized (bad API key)');
-      e.status = 403;
-      next(e);
-    }
-  };
-}
-
 // Static file server
 app.use(static('public', { 'index':  false }));
 
@@ -66,49 +48,24 @@ app.engine('jade', jade.__express);
 app.set('view engine', 'jade');
 app.set('views', path.resolve(__dirname, 'views'));
 
+// Middleware
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
-app.use(methodOverride(function getter (req, res) {
-  if (req.body && typeof req.body === 'object' && '_method' in req.body) {
-    // look in urlencoded POST body and delete it
-    var method = req.body._method;
-    delete req.body._method;
-    return method;
-  }
-}));
+app.use(methodOverride());
 app.use(cookieParser());
-app.use(checkApiKey());
+app.use(checkApikey());
 app.use(session({
   store:             new MongoStore({ url: conf.db.uri }),
   secret:            conf.session_secret,
   resave:            false,
   saveUninitialized: false
 }));
-app.use(csrf({
-  cookie: false, // use session instead of a cookie
-  value: function (req) {
-    return (req.apikey && req.session._csrf) || // Skip the CSRF check for API requests
-      (req.body && req.body._csrf) ||
-      (req.query && req.query._csrf) ||
-      req.headers['csrf-token'] ||
-      req.headers['xsrf-token'] ||
-      req.headers['x-csrf-token'] ||
-      req.headers['x-xsrf-token'];
-  }
-}));
+app.use(csrf());
 app.use(expressMessages);
-app.use(function (req, res, next) {
-  res.locals.csrfToken = req.csrfToken;
-  res.locals.loggedIn = req.session.username || req.cookies.logintoken; // This is not a security function, just a hint that is used for the navbar
-  next();
-});
+app.use(requestLocals);
 
 // Params
-
-app.param('format', function (req, res, next){
-  req.params.format = req.params.format.toLowerCase();
-  next();
-});
+require('./routes/params')(app);
 
 // Routes
 

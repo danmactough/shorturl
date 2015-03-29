@@ -30,13 +30,14 @@ app.engine('jade', jade.__express);
 app.set('view engine', 'jade');
 app.set('views', path.resolve(__dirname, 'views'));
 
+// Middleware
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 
-app.param('format', function (req, res, next){
-  req.params.format = req.params.format.toLowerCase();
-  next();
-});
+// Params
+require('./routes/params')(app);
+
+// Routes
 
 app.get('/:shorturl([^\+\.]+)', function (req, res, next) {
   models.Url.findByShorturl(req.params.shorturl).exec(function (err, doc){
