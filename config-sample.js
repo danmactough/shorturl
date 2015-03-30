@@ -33,6 +33,6 @@ Object.keys(config).forEach(function (environment) {
       hostname: 'localhost',
       port: service === 'redirector' ? 3000 : 3001
     };
-    conf.url = urlFormat(_.defaults(conf, defaults));
+    conf.url || (conf.url = urlFormat(_.defaults(conf, defaults)));
   });
 });
