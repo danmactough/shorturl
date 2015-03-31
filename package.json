@@ -1,6 +1,6 @@
 {
   "name": "Shorturl",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "author": "Dan MacTough <danmactough@gmail.com> (http://yabfog.com/)",
   "private": true,
   "dependencies": {
