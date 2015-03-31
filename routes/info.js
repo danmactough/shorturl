@@ -20,7 +20,7 @@ module.exports = function (app) {
       };
     }
     models.Url.find(query)
-      .sort('hits.lasttimestamp', -1)
+      .sort('-hits.lasttimestamp')
       .exec(function (err, docs) {
         if (err) return next(err);
         else res.json(docs.map(function (u) { return u.toJSON(); }));
