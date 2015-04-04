@@ -19,6 +19,7 @@ module.exports = function checkApiKey () {
     else if (key === USER.api_key) {
       debug('Valid API key: %s', key);
       req.apikey = key;
+      req.session = {}; // Mock the session so it doesn't generate
       next();
     }
     else {
